@@ -1,0 +1,88 @@
+﻿Express คือ library สำหรับเขียนการสร้าง Http Server
+
+- Basic server
+ขั้นตอนการทำ
+1. npm init -y (เพื่อบอกว่าโฟลเดอร์นี้จะใช้ npm)
+2. npm i -s express (ติดตั้ง library express)
+3. สร้างไฟล์ index.js แล้วสร้าง server ง่ายๆ ด้วย express
+
+- การส่งข้อมูลจาก Client => Server
+1. query
+    ตัวอย่าง url: localhost:8000/?x=1&y=2
+    ตัวอย่างการเรียกใช้
+    app.get('/', (req, res) => {
+        console.log(req.query.x, req.query.y)
+    })
+2. params
+    ตัวอย่าง url: localhost:8000/1/2
+    ตัวอย่างการเรียกใช้
+    app.get('/:x/:y', (req, res) => {
+        console.log(req.params.x, req.params.y)
+    })
+3. body
+    ตัวอย่าง form
+    <form action='/add'>
+        <input type='text' name='x'/>
+        <input type='text' name='y'/>
+        <button type='submit'>Submit</button>
+    </form>
+    ตัวอย่างการเรียกใช้ **ต้องมีการใช้ body-parser
+    const bodyParser = require('body-parser');
+
+    const urlencodedParser = bodyParser.urlencoded({extended: false});
+
+    app.post('/add', urlencodedParser, (req, res) => {
+        console.log(req.body.x, req.body.y)
+    })
+    
+
+- การบันทึกข้อมูล
+1. cookies (ฝั่ง Client)
+    ** ต้องมีการใช้ cookie-parser
+    const cookieParser = require('cookie-parser');
+
+    app.use(cookieParser('keyboardCat'));
+
+    app.get('/', (req, res) => {
+        res.send(req.cookies);
+    })
+
+    app.get('/set', (req, res) => {
+        req.cookie('a', 10);
+        res.send('OK');
+    })
+
+2. session (ฝั่ง Server)
+    ** ต้องมีการใช้ express-session
+    const session = require('express-session');
+
+    app.user(session({
+        secret: 'keyboardCat',
+        cookie: { maxAge: 3000 },
+        resave: true,
+        saveUninitialized: true
+    }))
+
+    app.use((req, res, next) => {
+        let sess = req.session;
+        sess.views = !sess.views ? 1 : sess.views + 1;
+        next();
+    })
+
+    app.get('/', (req, res) => {
+        console.log(req.session.views)
+    })
+
+- Template engine (ejs)
+    ** ต้องติดตั้ง ejs ด้วยคำสั่ง npm i -s ejs
+    ** และกำหนด views, view engine ให้กับ server
+
+    app.set('views', './views')
+    app.set('view engine', 'ejs')
+
+    app.get('/view', (req, res) => {
+        res.render('a', {
+            a: 10,
+            b: ['1', '2', '3']
+        })
+    })
